@@ -1,12 +1,11 @@
 use crate::models::general::llm::{ Message, GeminiResponse };
 use dotenv::dotenv;
-use reqwest::{Client, Method};
-use serde_json::Value;
+use reqwest::header::{HeaderMap, HeaderValue};
 
-use std::{collections::HashMap, env};
+use std::env;
 
 //Call large language model (i.e. Gemini)
-pub async fn call_gemini(message: Message) -> String {
+pub async fn call_gemini(message: &Message) -> Result<String, Box<dyn std::error::Error + Send>> {
     dotenv().ok();
 
     //Extract API key
@@ -16,19 +15,42 @@ pub async fn call_gemini(message: Message) -> String {
     // Combine url_prefix and api_key in single string
     let gemini_url = format!("{}{}", gemini_url_prefix, gemini_api_key);
 
-    let client = reqwest::Client::new();
-    let response: reqwest::Response = client.post(gemini_url)
-        .header("Content-Type", "apllication/json")
-        .body(serde_json::to_string(&message).unwrap())
+    // Create headers
+    let mut gemini_headers: HeaderMap = HeaderMap::new();
+    gemini_headers.insert("Content-Type", HeaderValue::from_str("application/json")
+        .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?
+    );
+
+
+    let client = reqwest::Client::builder();
+    let response: reqwest::Response = client
+        .default_headers(gemini_headers)
+        .build()
+        .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?
+        .post(gemini_url)
+        .body(serde_json::to_string(&message)
+            .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?
+        )
         .send()
         .await
-        .unwrap();
+        .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?;
     //dbg!(&response.text().await.unwrap());
-    let v: GeminiResponse = serde_json::from_str(&response.text().await.unwrap()).unwrap();
-    println!("{:#?}", v.candidates.);
-    //let return_value = response.json::<String>().await.unwrap();
-    //return return_value;
-    "Response".to_string()
+    // let v: GeminiResponse = serde_json::from_str(&response.text().await
+    //     .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?
+    // )
+    // .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?;
+    let gemini_reponse: GeminiResponse = response.json().await
+        .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?;
+    // println!("{:#?}", v.candidates[0].content.parts[0].text);
+    let mut response_string: String = String::new();
+    for candidate in gemini_reponse.candidates {
+        for parts in candidate.content.parts {
+            if let Some(text) = parts.text {
+                response_string.push_str(&text);
+            }
+        }
+    }
+    return Ok(response_string);
 }
 
 

@@ -20,6 +20,9 @@ async fn main() {
         contents: vec![message_part]
     };
 
-    let gemini_response = call_gemini(message).await;
+    let gemini_response: String = match call_gemini(&message).await {
+        Ok(response) => response,
+        Err(_) => call_gemini(&message).await.unwrap()
+    };
     println!("{}", gemini_response);
 }
