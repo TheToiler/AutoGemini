@@ -8,7 +8,7 @@ use std::io::{stdin, stdout};
 pub enum PrintCommand {
     AICall,
     UnitTest,
-    Issue
+    Issue,
 }
 
 impl PrintCommand {
@@ -19,7 +19,7 @@ impl PrintCommand {
         let statement_color: Color = match self {
             Self::AICall => Color::Cyan,
             Self::UnitTest => Color::Magenta,
-            Self::Issue => Color::Red
+            Self::Issue => Color::Red,
         };
 
         // Print the statement in a specific color
@@ -50,8 +50,6 @@ pub fn get_user_reponse(question: &str) -> String {
     return user_input.trim().to_string();
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -61,5 +59,3 @@ mod tests {
         PrintCommand::AICall.print_agent_message("architect", "something went wrong!");
     }
 }
-
-

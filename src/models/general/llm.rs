@@ -1,12 +1,11 @@
 #![allow(dead_code)]
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Serialize, Clone)]
 pub struct Message {
     pub contents: Vec<MessagePart>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub generation_config: Option<GenerationConfig>
+    pub generation_config: Option<GenerationConfig>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -17,12 +16,10 @@ pub struct GenerationConfig {
     pub max_output_tokens: Option<u32>,
 }
 
-
 #[derive(Debug, Serialize, Clone)]
 pub struct MessagePart {
-    pub parts: Vec<MessagePartText>
+    pub parts: Vec<MessagePartText>,
 }
-
 
 #[derive(Debug, Serialize, Clone)]
 pub struct MessagePartText {
@@ -35,7 +32,7 @@ pub struct GeminiResponse {
     #[serde(rename = "usageMetadata")]
     pub usage_metadata: Option<UsageMetadata>, // Optional field
     #[serde(rename = "modelVersion")]
-    pub model_version: Option<String> // Optional field
+    pub model_version: Option<String>, // Optional field
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -49,14 +46,14 @@ pub struct UsageMetadata {
     #[serde(rename = "promptTokensDetails")]
     pub prompt_tokens_details: Option<Vec<TokenDetails>>,
     #[serde(rename = "candidatesTokensDetails")]
-    pub candidates_tokens_details: Option<Vec<TokenDetails>>
+    pub candidates_tokens_details: Option<Vec<TokenDetails>>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct TokenDetails {
     pub modality: Option<String>,
     #[serde(rename = "tokenCount")]
-    pub token_count: Option<u32>
+    pub token_count: Option<u32>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -64,16 +61,16 @@ pub struct ResponseContent {
     pub content: ResponseContentParts,
     #[serde(rename = "finishReason")]
     pub finish_reason: Option<String>,
-    pub avg_logprobs: Option<f64>
+    pub avg_logprobs: Option<f64>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ResponseContentParts {
     pub parts: Vec<ResponseContentPartsText>,
-    pub role: Option<String>
+    pub role: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ResponseContentPartsText {
-    pub text: Option<String>
+    pub text: Option<String>,
 }
