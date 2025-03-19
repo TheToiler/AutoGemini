@@ -4,25 +4,28 @@ mod helpers;
 mod models;
 
 use helpers::command_line::get_user_reponse;
-use models::general::llm::{Message, MessagePart, MessagePartText};
 use apis::call_request::call_gemini;
+use models::general::llm::{Message, MessagePart, MessagePartText};
 
 #[tokio::main]
 async fn main() {
     let user_input: String = get_user_reponse("What webserver are we building today?");
-    dbg!(&user_input);
 
-    let message_part_text = MessagePartText {
-        text: user_input
-    };
-    let message_part = MessagePart { parts: vec![message_part_text]};
-    let message = Message {
-        contents: vec![message_part]
-    };
 
-    let gemini_response: String = match call_gemini(&message).await {
+    let gemini_prompt: Message = Message {
+        contents: vec![
+            MessagePart {
+                parts: vec![
+                    MessagePartText { text: user_input.to_string() }
+                ]
+            }
+        ],
+        generation_config: None
+    };
+    
+    let gemini_response: String = match call_gemini(&gemini_prompt).await {
         Ok(response) => response,
-        Err(_) => call_gemini(&message).await.unwrap()
+        Err(_) => call_gemini(&gemini_prompt).await.unwrap()
     };
     println!("{}", gemini_response);
 }

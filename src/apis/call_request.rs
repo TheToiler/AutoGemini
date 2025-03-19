@@ -1,4 +1,4 @@
-use crate::models::general::llm::{ Message, GeminiResponse };
+use crate::models::general::llm::{ Message, GeminiResponse, MessagePart, MessagePartText, GenerationConfig };
 use dotenv::dotenv;
 use reqwest::header::{HeaderMap, HeaderValue};
 
@@ -22,31 +22,28 @@ pub async fn call_gemini(message: &Message) -> Result<String, Box<dyn std::error
     );
 
 
-    let client = reqwest::Client::builder();
-    let response: reqwest::Response = client
+    let client = reqwest::Client::builder()
         .default_headers(gemini_headers)
         .build()
-        .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?
+        .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?;
+
+
+    let response: GeminiResponse = client
         .post(gemini_url)
-        .body(serde_json::to_string(&message)
-            .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?
-        )
+        .json(&message)
         .send()
         .await
+        .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?
+        .json()
+        .await
         .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?;
-    //dbg!(&response.text().await.unwrap());
-    // let v: GeminiResponse = serde_json::from_str(&response.text().await
-    //     .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?
-    // )
-    // .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?;
-    let gemini_reponse: GeminiResponse = response.json().await
-        .map_err(|e| -> Box<dyn std::error::Error + Send> {Box::new(e)} )?;
-    // println!("{:#?}", v.candidates[0].content.parts[0].text);
+
     let mut response_string: String = String::new();
-    for candidate in gemini_reponse.candidates {
+    for candidate in response.candidates {
         for parts in candidate.content.parts {
-            if let Some(text) = parts.text {
-                response_string.push_str(&text);
+            if let Some(text) = parts.text.as_deref() {
+                response_string.push_str("------------------------------------------------------------------------------------------\n");
+                response_string.push_str(text);
             }
         }
     }
@@ -54,4 +51,31 @@ pub async fn call_gemini(message: &Message) -> Result<String, Box<dyn std::error
 }
 
 
+#[tokio::test]
+async fn test_call_gemini() {
+    let message = "Hallo, dit is een test. Kan je een kort antwoord geven?";
 
+
+    let gemini_prompt: Message = Message {
+        contents: vec![
+            MessagePart {
+                parts: vec![
+                    MessagePartText { text: message.to_string() }
+                ]
+            }
+        ],
+        generation_config: Some(GenerationConfig {
+            temperature: Some(0.7),
+            max_output_tokens: Some(500),
+        }),
+    };
+
+
+    let res = call_gemini(&gemini_prompt).await;
+    println!("Test result: {:#?}", res);
+    if let Ok(_res_str) = res {
+        assert!(true);
+    } else {
+        assert!(false);
+    }
+}

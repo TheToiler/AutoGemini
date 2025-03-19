@@ -1,10 +1,22 @@
+#![allow(dead_code)]
 use serde::{Deserialize, Serialize};
 
 
 #[derive(Debug, Serialize, Clone)]
 pub struct Message {
-    pub contents: Vec<MessagePart>
+    pub contents: Vec<MessagePart>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub generation_config: Option<GenerationConfig>
 }
+
+#[derive(Debug, Serialize, Clone)]
+pub struct GenerationConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temperature: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_output_tokens: Option<u32>,
+}
+
 
 #[derive(Debug, Serialize, Clone)]
 pub struct MessagePart {
