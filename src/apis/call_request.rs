@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use crate::models::general::llm::{
     GeminiResponse, GenerationConfig, Message, MessagePart, MessagePartText,
 };
@@ -45,7 +47,6 @@ pub async fn call_gemini(message: &Message) -> Result<String, Box<dyn std::error
     for candidate in response.candidates {
         for parts in candidate.content.parts {
             if let Some(text) = parts.text.as_deref() {
-                response_string.push_str("------------------------------------------------------------------------------------------\n");
                 response_string.push_str(text);
             }
         }

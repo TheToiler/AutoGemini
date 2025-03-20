@@ -9,6 +9,7 @@ pub struct BasicAgent {
     pub memory: Vec<Message>
 }
 
+#[allow(unused)]
 #[derive(Debug, PartialEq)]
 pub enum AgentState {
     Discovery,

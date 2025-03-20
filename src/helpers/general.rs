@@ -1,3 +1,4 @@
+#![allow(unused)]
 use std::fmt::format;
 use std::io::{BufReader, Read, Write};
 
@@ -45,7 +46,6 @@ pub async fn ai_task_request(
     //Extend the ai function
     let extended_message: Message = extend_ai_function(function_pass, &msg_context);
 
-    dbg!(&extended_message);
     //Print current status
     PrintCommand::AICall.print_agent_message(agent_position, agent_operation);
 
@@ -70,6 +70,8 @@ pub async fn ai_task_request_decoded<T: DeserializeOwned>(
     function_pass: for<'a> fn(&'a str) -> &'static str,
 ) -> T {
     let response_to_decode = ai_task_request(msg_context, agent_position, agent_operation, function_pass).await;
+    // Next line is for debugging possible errors in a JSON returned from the model.
+    //dbg!(&response_to_decode);
     let decoded_response: T = serde_json::from_str(&response_to_decode).expect("Failed to decode AI response from serde_json");
 
     // Return decoded response

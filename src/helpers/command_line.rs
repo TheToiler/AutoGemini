@@ -4,6 +4,7 @@ use crossterm::{
 };
 use std::io::{stdin, stdout};
 
+#[allow(unused)]
 #[derive(PartialEq, Debug)]
 pub enum PrintCommand {
     AICall,

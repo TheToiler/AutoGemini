@@ -1,3 +1,4 @@
+#![allow(unused)]
 use crate::models::agent_basic::basic_agent::{ AgentState, BasicAgent };
 use crate::models::agents::agent_traits::{ FactSheet, SpecialFunctions };
 

@@ -1,3 +1,4 @@
+#![allow(unused)]
 use crate::models::agent_basic::basic_agent::BasicAgent;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -5,7 +6,7 @@ use std::fmt::Debug;
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct FactSheet {
     pub project_description: String,
-    pub project_scoper: Option<ProjectScope>,
+    pub project_scope: Option<ProjectScope>,
     pub external_urls: Option<Vec<String>>,
     pub backend_code: Option<String>,
     pub api_endpoint_schema: Option<Vec<RouteObject>>,
@@ -31,7 +32,7 @@ pub struct RouteObject {
 
 pub trait SpecialFunctions: Debug {
     // Used so that manager  van get attributes from agents
-    fn get_attributes_from_agent(&self) -> BasicAgent;
+    fn get_attributes_from_agent(&self) -> &BasicAgent;
 }
 
 pub trait ExecuteFunction: SpecialFunctions {
