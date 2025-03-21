@@ -1,5 +1,6 @@
 #![allow(unused)]
 use crate::models::agent_basic::basic_agent::BasicAgent;
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
@@ -28,14 +29,14 @@ pub struct RouteObject {
     pub response: serde_json::Value,
 }
 
-
-
-pub trait SpecialFunctions: Debug {
+#[async_trait]
+pub trait SpecialFunctions: Debug + Send + Sync {
     // Used so that manager  van get attributes from agents
     fn get_attributes_from_agent(&self) -> &BasicAgent;
-}
 
-pub trait ExecuteFunction: SpecialFunctions {
     // Excute agent on the factsheet
-    async fn execute(&mut self, factsheet: &mut FactSheet) -> Result<(), Box<dyn std::error::Error>>;
+    async fn execute(
+        &mut self,
+        factsheet: &mut FactSheet,
+    ) -> Result<(), Box<dyn std::error::Error>>;
 }

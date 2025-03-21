@@ -2,17 +2,19 @@
 use std::fmt::format;
 use std::io::{BufReader, Read, Write};
 
-use serde::de::DeserializeOwned;
 use reqwest::{Client, Response};
+use serde::de::DeserializeOwned;
 
 use crate::apis::call_request::call_gemini;
 use crate::helpers::command_line::PrintCommand;
 use crate::models::general::llm::{GeminiResponse, Message, MessagePart, MessagePartText};
 
-const TEMPLATE_CODE: &str = "/home/arnold/Documents/Projects/Udemy/AutoGippity/web_template/src/code_template.rs";
-const TEMPLATE_OUTPUT: &str = "/home/arnold/Documents/Projects/Udemy/AutoGippity/web_template/src/main.rs";
-const TEMPLATE_API_ENDPOINT: &str = "/home/arnold/Documents/Projects/Udemy/AutoGippity/web_template/schemas/api_schema.json.rs";
-
+const TEMPLATE_CODE: &str =
+    "/home/arnold/Documents/Projects/Udemy/AutoGippity/web_template/src/code_template.rs";
+const TEMPLATE_OUTPUT: &str =
+    "/home/arnold/Documents/Projects/Udemy/AutoGippity/web_template/src/main.rs";
+const TEMPLATE_API_ENDPOINT: &str =
+    "/home/arnold/Documents/Projects/Udemy/AutoGippity/web_template/schemas/api_schema.json.rs";
 
 pub fn extend_ai_function(ai_funct: fn(&str) -> &'static str, func_input: &str) -> Message {
     let ai_function_string = ai_funct(func_input);
@@ -69,16 +71,16 @@ pub async fn ai_task_request_decoded<T: DeserializeOwned>(
     agent_operation: &str,
     function_pass: for<'a> fn(&'a str) -> &'static str,
 ) -> T {
-    let response_to_decode = ai_task_request(msg_context, agent_position, agent_operation, function_pass).await;
+    let response_to_decode =
+        ai_task_request(msg_context, agent_position, agent_operation, function_pass).await;
     // Next line is for debugging possible errors in a JSON returned from the model.
     //dbg!(&response_to_decode);
-    let decoded_response: T = serde_json::from_str(&response_to_decode).expect("Failed to decode AI response from serde_json");
+    let decoded_response: T = serde_json::from_str(&response_to_decode)
+        .expect("Failed to decode AI response from serde_json");
 
     // Return decoded response
     return decoded_response;
 }
-
-
 
 // Perform check on returned api links from the ai model.
 pub async fn check_status_code(client: &Client, url: &str) -> Result<u16, reqwest::Error> {
@@ -88,22 +90,26 @@ pub async fn check_status_code(client: &Client, url: &str) -> Result<u16, reqwes
 
 //Get Code template
 pub fn read_code_template_contents() -> String {
-    return std::fs::read_to_string(TEMPLATE_CODE.to_string()).expect("Failed to read code_template file!");
+    return std::fs::read_to_string(TEMPLATE_CODE.to_string())
+        .expect("Failed to read code_template file!");
 }
 
+//Get Code from the main
+pub fn read_code_template_output_contents() -> String {
+    return std::fs::read_to_string(TEMPLATE_OUTPUT.to_string())
+        .expect("Failed to read template_output file!");
+}
 
 // Save new backend code
-pub fn save_code(file_contents: &String) {
+pub fn save_backend_code(file_contents: &String) {
     std::fs::write(TEMPLATE_OUTPUT, file_contents.as_str()).expect("Failed to write code file!");
 }
 
 // Save api endpoint file
 pub fn save_api_endpoint(api_endpoints: &String) {
-    std::fs::write(TEMPLATE_API_ENDPOINT, api_endpoints.as_str()).expect("Failed to write API Endpoints to file!");
+    std::fs::write(TEMPLATE_API_ENDPOINT, api_endpoints.as_str())
+        .expect("Failed to write API Endpoints to file!");
 }
-
-
-
 
 #[cfg(test)]
 mod tests {
@@ -142,10 +148,9 @@ mod tests {
         let result = check_status_code(&client, "https://swapi.dev/api/people/").await;
         match result {
             Ok(code) => println!("We konden de URL bereiken: {}", code),
-            Err(e) => println!("Error is: {:?}", e)
+            Err(e) => println!("Error is: {:?}", e),
         };
 
         assert!(false);
     }
-
 }

@@ -2,7 +2,7 @@ use crossterm::{
     ExecutableCommand,
     style::{Color, ResetColor, SetForegroundColor},
 };
-use std::io::{stdin, stdout};
+use std::io::{stdin, stdout, Write};
 
 #[allow(unused)]
 #[derive(PartialEq, Debug)]
@@ -49,6 +49,45 @@ pub fn get_user_reponse(question: &str) -> String {
         .read_line(&mut user_input)
         .expect("Failed to read input from stdin!");
     return user_input.trim().to_string();
+}
+
+pub fn confirm_safe_code() -> bool {
+    let mut stdout: std::io::Stdout = stdout();
+    let stdin: std::io::Stdin = stdin();
+
+    loop {
+        stdout.execute(SetForegroundColor(Color::Blue)).unwrap();
+        println!();
+        println!("WARNING: The program is now going to test the code that has been written.");
+        println!("Please review the code and confirm its safety after reviewing.");
+        println!();
+
+        stdout.execute(SetForegroundColor(Color::Green)).unwrap();
+        println!("[1] All is well, please continue.");
+
+        stdout.execute(SetForegroundColor(Color::DarkRed)).unwrap();
+        println!("[2] Let's stop this project!");
+
+        stdout.execute(ResetColor).unwrap();
+        print!("Enter your choice: ");
+        stdout.flush().unwrap(); // ✅ Ensures prompt appears before input
+
+        let mut user_input: String = String::new();
+        stdin
+            .read_line(&mut user_input)
+            .expect("Failed to read input from stdin!");
+        let trimmed_user_input = user_input.trim().to_lowercase();
+        match trimmed_user_input.as_str() {
+            "1" | "ok" | "y" | "yes" => return true,
+            "2" | "no" | "quit" | "stop" | "n" => return false,
+            _ => {
+                stdout.execute(SetForegroundColor(Color::DarkRed)).unwrap();
+                println!();
+                println!("Invalid value. Please enter a 1 or a 2.");
+                stdout.execute(ResetColor).unwrap();
+            }
+        }
+    }
 }
 
 #[cfg(test)]
