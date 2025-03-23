@@ -6,7 +6,7 @@ use crate::ai_functions::ai_func_backend::{
 use crate::helpers::command_line::{ confirm_safe_code, PrintCommand };
 use crate::helpers::general::{
     ai_task_request, check_status_code, read_code_template_contents,
-    read_code_template_output_contents, save_api_endpoint, save_backend_code,
+    read_code_template_output_contents, save_api_endpoint, save_backend_code, WEB_SERVER_PROJECT_PATH,
 };
 use crate::models::agent_basic::basic_agent::{AgentState, BasicAgent};
 use crate::models::agents::agent_traits::{FactSheet, ProjectScope, SpecialFunctions};
@@ -175,12 +175,13 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         break;
                     };
 
-                    PrintCommand::UnitTest.print_agent_message(&self.attributes.position,\ "Backend code unittesting: Building project.");
+                    PrintCommand::UnitTest.print_agent_message(&self.attributes.position, "Backend code unittesting: Building project.");
                     
                     // Building the code
-                    let output = Command::new("cargo")
+                    let output: std::process::Output = Command::new("cargo")
                         .arg("build")
                         .arg("--message-format=json")
+                        .current_dir(WEB_SERVER_PROJECT_PATH)
                         .output()
                         .expect("Apparently cargo is not installed or not available in the path!");
                     
@@ -191,13 +192,14 @@ impl SpecialFunctions for AgentBackendDeveloper {
                             if json["reason"] == "compiler-message" {
                                 if let Some("error") = json["message"]["level"].as_str() {
                                     error_count += 1;
-                                    self.bug_errors.push(json["message"]["rendered"].as_str().unwrap_or("").to_string());
+                                    self.bug_errors = Some(format!("{}{}", self.bug_errors.as_deref().unwrap_or(""), json["message"]["rendered"].as_str().unwrap_or("").to_string()));
                                 }
                             }
                         }
                     }
                 
                     println!("\nTotal Errors: {}", error_count);
+                    println!("Content bug_errors: {}", self.bug_errors.as_deref().unwrap_or(""));
                     // Confirm done
                     self.attributes.state = AgentState::Finished;
                 }

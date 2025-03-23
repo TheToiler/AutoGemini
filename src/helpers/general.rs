@@ -15,6 +15,8 @@ const TEMPLATE_OUTPUT: &str =
     "/home/arnold/Documents/Projects/Udemy/AutoGippity/web_template/src/main.rs";
 const TEMPLATE_API_ENDPOINT: &str =
     "/home/arnold/Documents/Projects/Udemy/AutoGippity/web_template/schemas/api_schema.json.rs";
+pub const WEB_SERVER_PROJECT_PATH: &str =
+    "/home/arnold/Documents/Projects/Udemy/AutoGippity/web_template/";
 
 pub fn extend_ai_function(ai_funct: fn(&str) -> &'static str, func_input: &str) -> Message {
     let ai_function_string = ai_funct(func_input);
