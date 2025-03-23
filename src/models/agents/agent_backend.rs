@@ -27,7 +27,7 @@ use super::agent_traits::RouteObject;
 pub struct AgentBackendDeveloper {
     attributes: BasicAgent,
     bug_errors: Option<String>,
-    bug_count: u8,
+    bug_fix_tries: u8,
 }
 
 impl AgentBackendDeveloper {
@@ -41,7 +41,7 @@ impl AgentBackendDeveloper {
         return Self {
             attributes,
             bug_errors: None,
-            bug_count: 0,
+            bug_fix_tries: 0,
         };
     }
 
@@ -161,6 +161,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     // if self.bug_count == 0 {
                     //     self.call_improved_backend_code(fact_sheet).await;
                     // } else {
+                            self.bug_fix_tries += 1;
                     //     self.call_fix_code_bugs(fact_sheet).await;
                     // }
                     self.attributes.state = AgentState::UnitTesting;
@@ -185,23 +186,43 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         .output()
                         .expect("Apparently cargo is not installed or not available in the path!");
                     
-                    let stdout = String::from_utf8_lossy(&output.stdout);
-                    let mut error_count = 0;
-                    for line in stdout.lines() {
-                        if let Ok(json) = serde_json::from_str::<serde_json::Value>(line) {
-                            if json["reason"] == "compiler-message" {
-                                if let Some("error") = json["message"]["level"].as_str() {
-                                    error_count += 1;
-                                    self.bug_errors = Some(format!("{}{}", self.bug_errors.as_deref().unwrap_or(""), json["message"]["rendered"].as_str().unwrap_or("").to_string()));
+                        let mut error_count = 0;
+                    if !output.status.success() {
+
+                        PrintCommand::UnitTest.print_agent_message(&self.attributes.position, "Backend code unittesting: Test server build not succesfull.");
+                        let stdout = String::from_utf8_lossy(&output.stdout);
+                        let mut error_count = 0;
+                        for line in stdout.lines() {
+                            if let Ok(json) = serde_json::from_str::<serde_json::Value>(line) {
+                                if json["reason"] == "compiler-message" {
+                                    if let Some("error") = json["message"]["level"].as_str() {
+                                        error_count += 1;
+                                        self.bug_errors = Some(format!("{}{}", self.bug_errors.as_deref().unwrap_or(""), json["message"]["rendered"].as_str().unwrap_or("").to_string()));
+                                    }
                                 }
                             }
                         }
+                    
+                        println!("\nTotal Errors: {}", error_count);
+                        println!("Content bug_errors: {}", self.bug_errors.as_deref().unwrap_or(""));
+                        PrintCommand::UnitTest.print_agent_message(&self.attributes.position, format!("Backend code unittesting: {} bugs found.", error_count).as_str());
                     }
-                
-                    println!("\nTotal Errors: {}", error_count);
-                    println!("Content bug_errors: {}", self.bug_errors.as_deref().unwrap_or(""));
-                    // Confirm done
-                    self.attributes.state = AgentState::Finished;
+
+                    // Go bugfixing when we have errors. But dont repeat for more then 5 times.
+                    if error_count > 0 {
+                        if self.bug_fix_tries > 5 {
+                            PrintCommand::Issue.print_agent_message(&self.attributes.position, "Backend code unittesting: Tried fixing biug for 5 times.");
+                            // TODO: Do we want to panic here?
+                            self.attributes.state = AgentState::Finished;
+                        } else {
+                            self.attributes.state = AgentState::Working;
+                            PrintCommand::UnitTest.print_agent_message(&self.attributes.position, "Backend code unittesting: Trying to fix bugs.");
+                        }
+                    } else {
+                        self.bug_fix_tries = 0;
+                        PrintCommand::UnitTest.print_agent_message(&self.attributes.position, "Backend code unittesting: Test server build succesfull.");
+                        self.attributes.state = AgentState::Finished;
+                    }
                 }
                 // Default to finished state
                 _ => {
